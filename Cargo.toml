@@ -1,0 +1,24 @@
+[package]
+name = "pico-blink-rs"
+version = "0.1.0"
+authors = ["Jonathan 'theJPster' Pallant <github@thejpster.org.uk>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cortex-m = "0.7"
+cortex-m-rt = "0.6.13"
+rp2040-pac = { path = "../rp2040-pac" }
+panic-halt = "0.2.0"
+
+# this lets you use `cargo fix`!
+[[bin]]
+name = "pico-blink-rs"
+test = false
+bench = false
+
+[profile.release]
+codegen-units = 1 # better optimizations
+debug = true # symbols are nice and they don't increase the size on Flash
+lto = true # better optimizations
