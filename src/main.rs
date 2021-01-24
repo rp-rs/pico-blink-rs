@@ -13,7 +13,7 @@ unsafe fn pre_init() {
     let sio = &*rp2040_pac::SIO::ptr();
 
     // If we are core 1, then stop dead and let core 0 do all the work.
-    if sio.cpuid.read() != 0u32 {
+    if sio.cpuid.read().bits() != 0u32 {
         loop {
             cortex_m::asm::nop();
         }
