@@ -1,29 +1,17 @@
 #![no_std]
 #![no_main]
 
-use cortex_m_rt::{entry, pre_init};
+use cortex_m_rt::entry;
 use panic_halt as _;
 
 #[link_section = ".boot_loader"]
-#[no_mangle]
-pub static BOOT_LOADER: [u8; 512] = *include_bytes!("boot2_and_reset.bin");
+#[used]
+pub static BOOT_LOADER: [u8; 256] = rp2040_boot2::BOOT_LOADER;
 
-#[pre_init]
-unsafe fn pre_init() {
-    let sio = &*rp2040_pac::SIO::ptr();
-
-    // If we are core 1, then stop dead and let core 0 do all the work.
-    if sio.cpuid.read().bits() != 0u32 {
-        loop {
-            cortex_m::asm::nop();
-        }
-    }
-}
-
+/// Handle peripheral resets so the chip is usable.
 unsafe fn setup_chip(p: &mut rp2040_pac::Peripherals) {
     // Now reset all the peripherals, except QSPI and XIP (we're using those
     // to execute from external flash!)
-
     p.RESETS.reset.write(|w| {
         w.adc().set_bit();
         w.busctrl().set_bit();
@@ -53,16 +41,6 @@ unsafe fn setup_chip(p: &mut rp2040_pac::Peripherals) {
         w
     });
 
-    // unreset_block_wait(RESETS_RESET_BITS /* 01ff_ffff */ & ~(
-    //         RESETS_RESET_ADC_BITS |
-    //         RESETS_RESET_RTC_BITS |
-    //         RESETS_RESET_SPI0_BITS |
-    //         RESETS_RESET_SPI1_BITS |
-    //         RESETS_RESET_UART0_BITS |
-    //         RESETS_RESET_UART1_BITS |
-    //         RESETS_RESET_USBCTRL_BITS
-    // ));
-
     const RESETS_RESET_BITS: u32 = 0x01ffffff;
     const RESETS_RESET_USBCTRL_BITS: u32 = 0x01000000;
     const RESETS_RESET_UART1_BITS: u32 = 0x00800000;
@@ -72,6 +50,17 @@ unsafe fn setup_chip(p: &mut rp2040_pac::Peripherals) {
     const RESETS_RESET_RTC_BITS: u32 = 0x00008000;
     const RESETS_RESET_ADC_BITS: u32 = 0x00000001;
 
+    // We want to take everything out of reset, except these peripherals:
+    //
+    // * ADC
+    // * RTC
+    // * SPI0
+    // * SPI1
+    // * UART0
+    // * UART1
+    // * USBCTRL
+    //
+    // These must stay in reset until the clocks are sorted out.
     const PERIPHERALS_TO_UNRESET: u32 = RESETS_RESET_BITS
         & !(RESETS_RESET_ADC_BITS
             | RESETS_RESET_RTC_BITS
@@ -81,8 +70,8 @@ unsafe fn setup_chip(p: &mut rp2040_pac::Peripherals) {
             | RESETS_RESET_UART1_BITS
             | RESETS_RESET_USBCTRL_BITS);
 
+    // Write 0 to the reset field to take it out of reset
     p.RESETS.reset.modify(|_r, w| {
-        // w.adc().clear_bit();
         w.busctrl().clear_bit();
         w.dma().clear_bit();
         w.i2c0().clear_bit();
@@ -97,16 +86,10 @@ unsafe fn setup_chip(p: &mut rp2040_pac::Peripherals) {
         w.pll_sys().clear_bit();
         w.pll_usb().clear_bit();
         w.pwm().clear_bit();
-        // w.rtc().clear_bit();
-        // w.spi0().clear_bit();
-        // w.spi1().clear_bit();
         w.syscfg().clear_bit();
         w.sysinfo().clear_bit();
         w.tbman().clear_bit();
         w.timer().clear_bit();
-        // w.uart0().clear_bit();
-        // w.uart1().clear_bit();
-        // w.usbctrl().clear_bit();
         w
     });
 
@@ -156,7 +139,7 @@ fn main() -> ! {
     });
 
     loop {
-        for _i in 0..1000000 {
+        for _i in 0..500000 {
             cortex_m::asm::nop();
         }
 
@@ -166,7 +149,7 @@ fn main() -> ! {
             w
         });
 
-        for _i in 0..1000000 {
+        for _i in 0..500000 {
             cortex_m::asm::nop();
         }
 
