@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use cortex_m::prelude::*;
 use cortex_m_rt::entry;
 use panic_halt as _;
 
@@ -101,10 +102,13 @@ unsafe fn setup_chip(p: &mut rp2040_pac::Peripherals) {
 #[entry]
 fn main() -> ! {
     let mut p = rp2040_pac::Peripherals::take().unwrap();
+    let cp = rp2040_pac::CorePeripherals::take().unwrap();
 
     unsafe {
         setup_chip(&mut p);
     }
+
+    let mut delay = cortex_m::delay::Delay::new(cp.SYST, 8_000_000);
 
     // Set GPIO25 to be an input (output enable is cleared)
     p.SIO.gpio_oe_clr.write(|w| unsafe {
@@ -139,9 +143,7 @@ fn main() -> ! {
     });
 
     loop {
-        for _i in 0..500000 {
-            cortex_m::asm::nop();
-        }
+        delay.delay_ms(1000);
 
         // Set GPIO25 to be low
         p.SIO.gpio_out_clr.write(|w| unsafe {
@@ -149,9 +151,7 @@ fn main() -> ! {
             w
         });
 
-        for _i in 0..500000 {
-            cortex_m::asm::nop();
-        }
+        delay.delay_ms(1000);
 
         // Set GPIO25 to be high
         p.SIO.gpio_out_set.write(|w| unsafe {
