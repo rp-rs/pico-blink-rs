@@ -1,8 +1,10 @@
 [package]
 name = "pico-blink-rs"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jonathan 'theJPster' Pallant <github@thejpster.org.uk>"]
 edition = "2018"
+license = "CC0"
+description = "Basic blinky program for the Raspberry Pi Pico"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,6 +13,7 @@ cortex-m = "0.7"
 cortex-m-rt = "0.6.13"
 rp2040-pac = { git = "https://github.com/rp-rs/rp2040-pac", branch="main" }
 panic-halt = "0.2.0"
+rp2040-boot2 = "0.1.0"
 
 # this lets you use `cargo fix`!
 [[bin]]
