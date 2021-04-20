@@ -123,16 +123,16 @@ fn main() -> ! {
     });
 
     // Configure pin 25 for GPIO
-    p.PADS_BANK0.gpio25.write(|w| {
+    p.PADS_BANK0.gpio[25].write(|w| {
         // Output Disable off
         w.od().clear_bit();
         // Input Enable on
         w.ie().set_bit();
         w
     });
-    p.IO_BANK0.gpio25_ctrl.write(|w| {
+    p.IO_BANK0.gpio[25].gpio_ctrl.write(|w| {
         // Map pin 25 to SIO
-        w.funcsel().sio_25();
+        w.funcsel().sio_0();
         w
     });
 
