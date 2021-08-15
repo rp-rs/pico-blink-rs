@@ -1,5 +1,7 @@
 # pico-blink-rs
 
+# Notice: this project has been deprecated. Please use https://github.com/rp-rs/rp2040-project-template
+
 Running Rust code on the Raspberry Pi Pico
 
 ## Booting
